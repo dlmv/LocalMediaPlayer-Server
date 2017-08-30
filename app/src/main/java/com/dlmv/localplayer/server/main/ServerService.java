@@ -6,6 +6,7 @@ import com.dlmv.localplayer.server.utils.RootApplication;
 import android.app.*;
 import android.content.*;
 import android.os.*;
+import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
 
@@ -156,16 +157,17 @@ public class ServerService extends Service {
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
 				new Intent(this, MainActivity.class), 0);
 
-
-
-		Notification notification = new Notification.Builder(this)
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
 				.setContentTitle(text)
 				.setContentText(text)
 				.setSmallIcon(R.drawable.notification)
 				.setContentIntent(contentIntent)
-				.setOngoing(true)
-				.build();
-		
+				.setOngoing(true);
+
+
+
+		Notification notification = builder.build();
+
 		this.startForeground(1, notification);
 	}
 
