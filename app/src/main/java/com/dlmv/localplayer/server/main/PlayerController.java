@@ -266,8 +266,8 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		doAfter();
 	}
 
-	synchronized void remove(int num) {
-		removeFromList(num);
+	synchronized void remove(int start, int finish) {
+		removeFromList(start, finish);
 		doAfter();
 	}
 	
@@ -317,21 +317,21 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		doAfter();
 	}
 
-	private void removeFromList(int num) {
-		if (num < myStatus.myPlaylist.size()) {
-			if (num == myStatus.myCurrentTrackNo) {
+	private void removeFromList(int start, int finish) {
+		if (start <= finish && start >= 0 && finish < myStatus.myPlaylist.size()) {
+			if (myStatus.myCurrentTrackNo >= start && myStatus.myCurrentTrackNo <= finish) {
 				stopPlaying();
-				myStatus.myPlaylist.remove(num);
-			} else	if (num > myStatus.myCurrentTrackNo) {
-				myStatus.myPlaylist.remove(num);
-			} else	if (num < myStatus.myCurrentTrackNo) {
-				myStatus.myPlaylist.remove(num);
-				myStatus.myCurrentTrackNo -= 1;
+				myStatus.myPlaylist.subList(start, finish + 1).clear();
+			} else	if (start > myStatus.myCurrentTrackNo) {
+				myStatus.myPlaylist.subList(start, finish + 1).clear();
+			} else	if (finish < myStatus.myCurrentTrackNo) {
+				myStatus.myPlaylist.subList(start, finish + 1).clear();
+				myStatus.myCurrentTrackNo -= (finish - start + 1);
 			}
-			if (num == myNextNum) {
+			if (myNextNum >= start && myNextNum <= finish) {
 				prepareNext(this.getNextNum(myStatus.myCurrentTrackNo));
-			} else 	if (num < myNextNum) {
-				myNextNum -= 1;
+			} else 	if (finish < myNextNum) {
+				myNextNum -= (finish - start + 1);
 			}
 		}
 	}

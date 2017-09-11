@@ -251,8 +251,9 @@ public class WebServer extends NanoHTTPD {
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
 			if (uri.equals("/remove")) {
-				int num = Integer.parseInt((String) parms.get("num"));
-				myController.remove(num);
+				int start = Integer.parseInt((String) parms.get("start"));
+				int finish = Integer.parseInt((String) parms.get("finish"));
+				myController.remove(start, finish);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
