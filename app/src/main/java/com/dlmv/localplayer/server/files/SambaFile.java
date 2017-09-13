@@ -1,5 +1,6 @@
 package com.dlmv.localplayer.server.files;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -27,54 +28,72 @@ class SambaFile extends AbstractFile {
 	private final SmbFile myFile;
 	private final Context myContext;
 	
-	SambaFile(String path, Context c) throws SmbException, MalformedURLException {
-		SmbFile f = new SmbFile(path);
-		myContext = c;
-		if (f.getShare() != null) {
-			PasswordData pd = ((RootApplication)myContext.getApplicationContext()).LoginDB().get("smb://" + f.getServer() + "/" + f.getShare());
-			if (pd != null) {
+	SambaFile(String path, Context c) throws FileException {
+		try {
+			SmbFile f = new SmbFile(path);
+			myContext = c;
+			if (f.getShare() != null) {
+				PasswordData pd = ((RootApplication) myContext.getApplicationContext()).LoginDB().get(shareString(f));
+				if (pd != null) {
+					NtlmPasswordAuthentication npa = new NtlmPasswordAuthentication("", pd.Login, pd.Password);
+					f = new SmbFile(path, npa);
+				}
+			}
+			myFile = f;
+			myType = myFile.isDirectory() ? MediaType.DIR : FileUtils.mediaTypeForPath(getPath());
+		} catch (SmbAuthException e) {
+			throw new FileAuthException(shareString(), e);
+		} catch (Exception e) {
+			throw new FileException(e);
+		}
+	}
+	
+	private SambaFile(SmbFile f, Context c) throws FileException {
+		try {
+			myContext = c;
+			if (f.getShare() != null) {
+				PasswordData pd = ((RootApplication) myContext.getApplicationContext()).LoginDB().get(shareString(f));
+				if (pd != null) {
+					NtlmPasswordAuthentication npa = new NtlmPasswordAuthentication("", pd.Login, pd.Password);
+					f = new SmbFile(f.getPath(), npa);
+				}
+			}
+			myFile = f;
+			myType = myFile.isDirectory() ? MediaType.DIR : FileUtils.mediaTypeForPath(getPath());
+		} catch (SmbAuthException e) {
+			throw new FileAuthException(shareString(), e);
+		} catch (Exception e) {
+			throw new FileException(e);
+		}
+	}
+	
+	SambaFile(String path, Context c, String login, String password) throws FileException {
+		try {
+			Log.d("STORE", "1");
+			SmbFile f = new SmbFile(path);
+			myContext = c;
+			if (f.getShare() != null) {
+				Log.d("STORE", "2");
+				PasswordData pd = new PasswordData(shareString(f), login, password);
 				NtlmPasswordAuthentication npa = new NtlmPasswordAuthentication("", pd.Login, pd.Password);
 				f = new SmbFile(path, npa);
+				try {
+					Log.d("STORE", "3");
+					f.exists();
+					Log.d("STORE", "4");
+					((RootApplication) myContext.getApplicationContext()).LoginDB().save(pd);
+				} catch (SmbException e) {
+					e.printStackTrace();
+				}
 			}
+
+			myFile = f;
+			myType = myFile.isDirectory() ? MediaType.DIR : FileUtils.mediaTypeForPath(getPath());
+		} catch (SmbAuthException e) {
+			throw new FileAuthException(shareString(), e);
+		} catch (Exception e) {
+			throw new FileException(e);
 		}
-		myFile = f;
-		myType = myFile.isDirectory() ? MediaType.DIR : FileUtils.mediaTypeForPath(getPath());
-	}
-	
-	private SambaFile(SmbFile f, Context c) throws SmbException, MalformedURLException {
-		myContext = c;
-		if (f.getShare() != null) {
-			PasswordData pd = ((RootApplication)myContext.getApplicationContext()).LoginDB().get("smb://" + f.getServer() + "/" + f.getShare());
-			if (pd != null) {
-				NtlmPasswordAuthentication npa = new NtlmPasswordAuthentication("", pd.Login, pd.Password);
-				f = new SmbFile(f.getPath(), npa);
-			}
-		}
-		myFile = f;
-		myType = myFile.isDirectory() ? MediaType.DIR : FileUtils.mediaTypeForPath(getPath());
-	}
-	
-	SambaFile(String path, Context c, String login, String password) throws SmbException, MalformedURLException {
-		Log.d("STORE", "1");
-		SmbFile f = new SmbFile(path);
-		myContext = c;
-		if (f.getShare() != null) {
-			Log.d("STORE", "2");
-			PasswordData pd = new PasswordData("smb://" + f.getServer() + "/" + f.getShare(), login, password);
-			NtlmPasswordAuthentication npa = new NtlmPasswordAuthentication("", pd.Login, pd.Password);
-			f = new SmbFile(path, npa);
-			try {
-				Log.d("STORE", "3");
-				f.exists();
-				Log.d("STORE", "4");
-				((RootApplication)myContext.getApplicationContext()).LoginDB().save(pd);
-			} catch (SmbException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		myFile = f;
-		myType = myFile.isDirectory() ? MediaType.DIR : FileUtils.mediaTypeForPath(getPath());
 	}
 
 	@Override
@@ -82,12 +101,20 @@ class SambaFile extends AbstractFile {
 		return myFile.getPath();
 	}
 
+	static String shareString(SmbFile f) {
+		return "smb://" + f.getServer() + "/" + f.getShare();
+	}
+
+	String shareString() {
+		return shareString(myFile);
+	}
+
 	@Override
 	public boolean readable() throws FileException {
 		try {
 			return myFile.canRead();
 		} catch (SmbAuthException e) {
-			throw new FileAuthException(e);
+			throw new FileAuthException(shareString(), e);
 		} catch (SmbException e) {
 			throw new FileException(e);
 		}
@@ -98,7 +125,7 @@ class SambaFile extends AbstractFile {
 		try {
 			return myFile.exists();
 		} catch (SmbAuthException e) {
-			throw new FileAuthException(e);
+			throw new FileAuthException(shareString(), e);
 		} catch (SmbException e) {
 			throw new FileException(e);
 		}
@@ -109,7 +136,7 @@ class SambaFile extends AbstractFile {
 		try {
 			return myFile.canRead() && myFile.isFile() ? FileUtils.fileSize(myFile.length()) : "?";
 		} catch (SmbAuthException e) {
-			throw new FileAuthException(e);
+			throw new FileAuthException(shareString(), e);
 		} catch (SmbException e) {
 			throw new FileException(e);
 		}
@@ -125,6 +152,8 @@ class SambaFile extends AbstractFile {
 				}
 				return res;
 			}
+		} catch (SmbAuthException e) {
+			throw new FileAuthException(shareString(), e);
 		} catch (Exception e) {
 			throw new FileException(e);
 		}
@@ -135,6 +164,8 @@ class SambaFile extends AbstractFile {
 	public InputStream getInputStream() throws FileException {
 		try {
 			return new SmbFileInputStream(myFile);
+		} catch (SmbAuthException e) {
+			throw new FileAuthException(shareString(), e);
 		} catch (Exception e) {
 			throw new FileException(e);
 		}
@@ -148,6 +179,19 @@ class SambaFile extends AbstractFile {
 			s.setStreamSrc(myFile, hash);
 			mp.setDataSource(c, Uri.parse(Streamer.URL + hash));
 			mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		} catch (SmbAuthException e) {
+			throw new FileAuthException(shareString(), e);
+		} catch (Exception e) {
+			throw new FileException(e);
+		}
+	}
+
+	@Override
+	public void test() throws FileException {
+		try {
+			myFile.exists();
+		} catch (SmbAuthException e) {
+			throw new FileAuthException(shareString(), e);
 		} catch (Exception e) {
 			throw new FileException(e);
 		}

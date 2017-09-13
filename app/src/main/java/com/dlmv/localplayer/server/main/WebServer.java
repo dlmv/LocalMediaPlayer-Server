@@ -98,10 +98,10 @@ public class WebServer extends NanoHTTPD {
 
 	private PlayerController myController;
 
-	private HashMap<String, Object> myNotifiers = new HashMap<String, Object>();
-	private HashMap<String, Boolean> myNeedToNotifyClient = new HashMap<String, Boolean>();
+	private HashMap<String, Object> myNotifiers = new HashMap<>();
+	private HashMap<String, Boolean> myNeedToNotifyClient = new HashMap<>();
 
-	private HashSet<String> myAuthorizedIps = new HashSet<String>();
+	private HashSet<String> myAuthorizedIps = new HashSet<>();
 
 	private String myPass = "";
 
@@ -142,33 +142,60 @@ public class WebServer extends NanoHTTPD {
 				return new Response(HTTP_OK, MIME_PLAINTEXT, "");
 			}
 
-			if (uri.equals("/browse")) {
+			if (uri.equals("/test")) {
 				String path = (String) parms.get("path");
 				if (path == null || "".equals(path)) {
 					return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
 				}
 				String login = (String) parms.get("login");
 				String password = (String) parms.get("password");
-				if (login != null && password != null) {
-					AbstractFile.create(path, myContext, login, password);
-				}
 				try {
+					AbstractFile f;
+					if (login != null && password != null) {
+						f = AbstractFile.create(path, myContext, login, password);
+					} else {
+						f = AbstractFile.create(path, myContext);
+					}
+					f.test();
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "true").replace("%REASON%", "Ok");
+					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+				} catch (FileAuthException e) {
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "loginNeeded: " + e.getMessage());
+					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+				}
+			}
+
+			if (uri.equals("/browse")) {
+				try {
+					String path = (String) parms.get("path");
+					if (path == null || "".equals(path)) {
+						return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
+					}
+					String login = (String) parms.get("login");
+					String password = (String) parms.get("password");
+					if (login != null && password != null) {
+						AbstractFile.create(path, myContext, login, password);
+					}
 					return new Response(HTTP_OK, MIME_PLAINTEXT, browse(path));
 				} catch (FileAuthException e) {
-					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "loginNeeded");
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "loginNeeded: " + e.getMessage());
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
 			}
 
 			if (uri.equals("/search")) {
-				String path = (String) parms.get("path");
-				String request = (String) parms.get("request");
-				if (path == null || "".equals(path)) {
-					return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
+				try {
+					String path = (String) parms.get("path");
+					String request = (String) parms.get("request");
+					if (path == null || "".equals(path)) {
+						return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
+					}
+					myStopSearchFlag = false;
+					return new Response(HTTP_OK, MIME_PLAINTEXT, search(path, request));
+				} catch (FileAuthException e) {
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "loginNeeded: " + e.getMessage());
+					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
-				myStopSearchFlag = false;
-				Log.d("WTF", "" + myStopSearchFlag);
-				return new Response(HTTP_OK, MIME_PLAINTEXT, search(path, request));
 			}
 
 			if (uri.equals("/stopsearch")) {
@@ -339,13 +366,14 @@ public class WebServer extends NanoHTTPD {
 		Log.d("WTF", "" + myStopSearchFlag);
 	}
 
-	private String search(String uri, String request) {
+	private String search(String uri, String request) throws FileAuthException {
+		String sres = "";
 		try {
-			ArrayList<AbstractFile> res = new ArrayList<AbstractFile>();
+			ArrayList<AbstractFile> res = new ArrayList<>();
 			AbstractFile f = AbstractFile.create(uri, myContext);
 			boolean result = searchRecursive(f, request.toLowerCase(), res);
 			if (!result) {
-				String sres = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "Search dismissed");
+				sres = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "Search dismissed");
 				Log.d("res", sres);
 				return sres;
 			}
@@ -366,14 +394,16 @@ public class WebServer extends NanoHTTPD {
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
-			String sres = ResultTemplate.replace("%PATH%", path).replace("%FILES%", tmp).replace("%REQUEST%", request);
+			sres = ResultTemplate.replace("%PATH%", path).replace("%FILES%", tmp).replace("%REQUEST%", request);
 			sres = ResponseTemplate.replace("%BODY%", sres).replace("%VALID%", "true").replace("%REASON%", "Ok");
 			Log.d("res", sres);
-			return sres;
+		} catch (FileAuthException e) {
+			throw e;
 		} catch (FileException e) {
 			e.printStackTrace();
+			sres = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "Server error!");
 		}
-		return "";
+		return sres;
 	}
 	
 	private boolean searchRecursive(AbstractFile f, String request, ArrayList<AbstractFile> res) {

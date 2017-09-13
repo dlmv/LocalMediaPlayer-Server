@@ -164,7 +164,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.mainwindow);
 		final View buttonView = findViewById(R.id.start_stop_buttons);
 
-		myStartButton = (Button)buttonView.findViewById(R.id.ok_button);
+		myStartButton = buttonView.findViewById(R.id.ok_button);
 		myStartButton.setText("Start");
 		myStartButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
@@ -192,7 +192,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		myStopButton = (Button)buttonView.findViewById(R.id.cancel_button);
+		myStopButton = buttonView.findViewById(R.id.cancel_button);
 		myStopButton.setText("Stop");
 		myStopButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
@@ -202,13 +202,13 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		Button passButton = (Button)findViewById(R.id.pass);
+		Button passButton = findViewById(R.id.pass);
 		passButton.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				View dialogView = View.inflate(MainActivity.this, R.layout.enter_password, null);
-				final EditText input = (EditText)dialogView.findViewById(R.id.name);
+				final EditText input = dialogView.findViewById(R.id.name);
 				final AlertDialog.Builder d = new AlertDialog.Builder(MainActivity.this)
 				.setMessage("Password")
 				.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -230,15 +230,15 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		myPortEdit = (EditText)findViewById(R.id.port);
-		myStreamingPortEdit = (EditText)findViewById(R.id.stream_port);
-		myIpEdit = (EditText)findViewById(R.id.ip);
+		myPortEdit = findViewById(R.id.port);
+		myStreamingPortEdit = findViewById(R.id.stream_port);
+		myIpEdit = findViewById(R.id.ip);
 
 		myIpEdit.setFocusable(false);
 
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		boolean startOnBoot = settings.getBoolean(START, true);
-		CheckBox startBox = (CheckBox)findViewById(R.id.start_on_boot);
+		CheckBox startBox = findViewById(R.id.start_on_boot);
 		startBox.setChecked(startOnBoot);
 		startBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override
@@ -251,7 +251,7 @@ public class MainActivity extends Activity {
 		});
 		boolean startOnLaunch = settings.getBoolean(START_LAUNCH, true);
 		myNeedToStart = startOnLaunch;
-		CheckBox startLaunchBox = (CheckBox)findViewById(R.id.start_on_launch);
+		CheckBox startLaunchBox = findViewById(R.id.start_on_launch);
 		startLaunchBox.setChecked(startOnLaunch);
 		startLaunchBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			@Override

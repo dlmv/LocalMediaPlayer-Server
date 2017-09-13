@@ -208,7 +208,6 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 
 	synchronized void clearPlaylist() {
 		stopPlaying();
-		myStatus.myRadioUri = null;
 		myStatus.myPlaylist.clear();
 		doAfter();
 	}
@@ -222,9 +221,6 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 	}
 
 	synchronized void seekTo(int pos) {
-		if (myStatus.myRadioUri != null) {
-			return;
-		}
 		if (myStatus.myState.equals(PlayerStatus.State.PAUSED) || myStatus.myState.equals(PlayerStatus.State.PLAYING)) {
 			if (pos < myStatus.myBufferPercent * myMP.getDuration() / 100) {
 				myMP.seekTo(pos);
@@ -247,18 +243,11 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 	}
 
 	synchronized void enqueue(String uri) {
-		if (myStatus.myRadioUri != null) {
-			myStatus.myRadioUri = null;
-			stopPlaying();
-		}
 		processEnqueue(uri);
 		doAfter();
 	}
 
 	synchronized void enqueueAndPlay(String uri) {
-		if (myStatus.myRadioUri != null) {
-			myStatus.myRadioUri = null;
-		}
 		stopPlaying();
 		myStatus.myPlaylist.clear();
 		this.processEnqueue(uri);
@@ -310,7 +299,6 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		myMP = null;
 		myNextMP = null;
 		myNextMPisPrepared = false;
-		myStatus.myRadioUri = null;
 		myStatus.myPlaylist.clear();
 		Streamer s = Streamer.getInstance();
 		s.clearSrc(Collections.<String> emptySet());
@@ -531,12 +519,6 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 	public boolean onError(MediaPlayer mp, int what, int extra) {
 		try {
 			if (mp == myMP) {
-				if (myStatus.myRadioUri != null) {
-					myPlayErrorMessage = "Corrupted Radio Stream:  " + myStatus.myRadioUri;
-					myMP = null;
-					stopPlaying();
-					return false;
-				}
 				if (myStatus.myCurrentTrackNo < myStatus.myPlaylist.size()) {
 					String uri = myStatus.myPlaylist.get(myStatus.myCurrentTrackNo).Path;
 					myPlayErrorMessage = "Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1);

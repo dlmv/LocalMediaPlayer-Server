@@ -8,8 +8,6 @@ import java.util.List;
 import android.content.Context;
 import android.media.MediaPlayer;
 
-import jcifs.smb.SmbAuthException;
-
 public abstract class AbstractFile {
 
 	public enum MediaType {
@@ -36,6 +34,9 @@ public abstract class AbstractFile {
 		FileException(Throwable throwable) {
 			super(throwable);
 		}
+		FileException(String message, Throwable throwable) {
+			super(message, throwable);
+		}
 	};
 	
 	public static class FileAuthException extends FileException {
@@ -43,7 +44,9 @@ public abstract class AbstractFile {
 		FileAuthException(Throwable throwable) {
 			super(throwable);
 		}
-		
+		FileAuthException(String message, Throwable throwable) {
+			super(message, throwable);
+		}
 	}
 
 	public String getName() {
@@ -56,6 +59,10 @@ public abstract class AbstractFile {
 		}
 		int divider = path.lastIndexOf("/");
 		return path.substring(divider + 1);
+	}
+
+	public void test() throws FileException {
+
 	}
 	
 
@@ -86,13 +93,7 @@ public abstract class AbstractFile {
 	
 	public static AbstractFile create(String path, Context c) throws FileException {
 		if (path.startsWith("smb://")) {
-			try {
-				return new SambaFile(path, c);
-			} catch (SmbAuthException e) {
-				throw new FileAuthException(e);
-			} catch (Exception e) {
-				throw new FileException(e);
-			}
+			return new SambaFile(path, c);
 		} else {
 			return new LocalFile(path);
 		}
@@ -100,11 +101,7 @@ public abstract class AbstractFile {
 	
 	public static AbstractFile create(String path, Context c, String login, String password) throws FileException {
 		if (path.startsWith("smb://")) {
-			try {
-				return new SambaFile(path, c, login, password);
-			} catch (Exception e) {
-				throw new FileException(e);
-			}
+			return new SambaFile(path, c, login, password);
 		} else {
 			return new LocalFile(path);
 		}

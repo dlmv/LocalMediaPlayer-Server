@@ -16,8 +16,6 @@ public class PlayerStatus {
 		WAITING,
 	}
 	public State myState = State.STOPPED;
-	
-	public String myRadioUri = null;
 
 	public enum PlaylistType {
 		LINEAR,
@@ -50,7 +48,7 @@ public class PlayerStatus {
 	public static final int STOP = 0;
 	public static final int PAUSE = 1;
 
-	public ArrayList<PlaylistItem> myPlaylist = new ArrayList<PlaylistItem>();
+	public ArrayList<PlaylistItem> myPlaylist = new ArrayList<>();
 	public int myCurrentTrackNo;
 	public int myCurrentDuration;
 	public int myCurrentPosition;
@@ -77,7 +75,7 @@ public class PlayerStatus {
 				e.printStackTrace();
 			}
 		}
-		String res = ourStatusTemplate.replace("%STATE%", myState.name())
+		return ourStatusTemplate.replace("%STATE%", myState.name())
 				.replace("%NUM%", Integer.toString(myCurrentTrackNo))
 				.replace("%STOPNUM%", Integer.toString(myStopAfter))
 				.replace("%STOPTYPE%", Integer.toString(myStopAfterType))
@@ -91,9 +89,7 @@ public class PlayerStatus {
 				.replace("%BACKMPVOLUME%", Integer.toString(myBackMpVolume))
 				.replace("%BACKMPMAXVOLUME%", Integer.toString(myBackMpMaxVolume))
 				.replace("%TYPE%", myType.name())
-				.replace("%RADIO%", myRadioUri == null ? "null" : myRadioUri)
 				.replace("%PLAYLIST%", pls);
-		return res;
 	}
 	
 	public static PlayerStatus fromDom(Element e) throws UnsupportedEncodingException {
@@ -111,10 +107,8 @@ public class PlayerStatus {
 		status.myCurrentTrackNo = Integer.parseInt(e.getAttribute("playing"));
 		status.myStopAfter = Integer.parseInt(e.getAttribute("stopAfter"));
 		status.myStopAfterType = Integer.parseInt(e.getAttribute("stopType"));
-		status.myRadioUri = e.getAttribute("radio");
-		status.myRadioUri = "null".equals(status.myRadioUri) ? null : status.myRadioUri;
 		NodeList list1 = e.getElementsByTagName("item");
-		status.myPlaylist = new ArrayList<PlaylistItem>();
+		status.myPlaylist = new ArrayList<>();
 		for (int i = 0; i < list1.getLength(); ++i) {
 			Element e1 = (Element)list1.item(i);
 			String path = URLDecoder.decode(e1.getAttribute("path"), "UTF-8");
