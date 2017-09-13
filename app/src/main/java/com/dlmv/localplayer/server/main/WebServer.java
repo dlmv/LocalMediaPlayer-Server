@@ -31,7 +31,7 @@ import nanohttpd.*;
 
 public class WebServer extends NanoHTTPD {
 
-	public final static String ResponseTemplate = "<response valid=\"%VALID%\" reason=\"%REASON%\">\n%BODY%</response>";
+	final static String ResponseTemplate = "<response valid=\"%VALID%\" reason=\"%REASON%\">\n%BODY%</response>";
 
 	private final String ResultTemplate = "<result path=\"%PATH%\" request=\"%REQUEST%\">\n%FILES%</result>\n";
 	
@@ -78,7 +78,7 @@ public class WebServer extends NanoHTTPD {
 		//		expose();
 	}
 	
-	public int getStreamingPort() {
+	int getStreamingPort() {
 		return myStreamingPort;
 	}
 
@@ -105,7 +105,7 @@ public class WebServer extends NanoHTTPD {
 
 	private String myPass = "";
 
-	public void setPass(String p) {
+	void setPass(String p) {
 		myPass = p;
 	}
 
@@ -157,6 +157,29 @@ public class WebServer extends NanoHTTPD {
 						f = AbstractFile.create(path, myContext);
 					}
 					f.test();
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "true").replace("%REASON%", "Ok");
+					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+				} catch (FileAuthException e) {
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "loginNeeded: " + e.getMessage());
+					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+				}
+			}
+
+			if (uri.equals("/testShare")) {
+				try {
+					String path = (String) parms.get("path");
+					if (path == null || "".equals(path)) {
+						return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
+					}
+					String login = (String) parms.get("login");
+					String password = (String) parms.get("password");
+					AbstractFile f;
+					if (login != null && password != null) {
+						f = AbstractFile.create(path, myContext, login, password);
+					} else {
+						f = AbstractFile.create(path, myContext);
+					}
+					f.children();
 					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "true").replace("%REASON%", "Ok");
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				} catch (FileAuthException e) {
@@ -509,7 +532,7 @@ public class WebServer extends NanoHTTPD {
 	}
 
 	private List<InetAddress> getLocalIpAddresses() {
-		final List<InetAddress> addresses = new LinkedList<InetAddress>();
+		final List<InetAddress> addresses = new LinkedList<>();
 		Method testPtoPMethod = null;
 		try {
 			testPtoPMethod = NetworkInterface.class.getMethod("isPointToPoint");

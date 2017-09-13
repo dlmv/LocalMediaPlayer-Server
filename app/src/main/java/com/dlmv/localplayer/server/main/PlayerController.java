@@ -13,6 +13,7 @@ import android.os.PowerManager;
 import com.dlmv.localplayer.*;
 import com.dlmv.localplayer.PlayerStatus.PlaylistItem;
 import com.dlmv.localplayer.server.files.AbstractFile;
+import com.dlmv.localplayer.server.files.AbstractFile.FileAuthException;
 import com.dlmv.localplayer.server.utils.FileUtils;
 import com.dlmv.localplayer.server.utils.NaturalOrderComparator;
 import com.dlmv.localplayer.server.utils.RootApplication;
@@ -124,6 +125,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		stopBackgroundInternal();
 		try {
 			AbstractFile f = AbstractFile.create(uri, myContext);
+			f.test();
 			myBackMP = new MediaPlayer();
 			myBackMP.setWakeMode(myContext, PowerManager.PARTIAL_WAKE_LOCK);
 			f.setAsSource(myBackMP, myContext);
@@ -133,8 +135,12 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			myBackMP.setLooping(true);
 			setMpVolumeInternal(myStatus.myBackMpVolume, myBackMP);
 			myBackMP.start();
+		} catch (FileAuthException e) {
+			stopBackground();
+			myPlayErrorMessage = "loginNeeded: " + e.getMessage();
 		} catch (Exception e) {
 			e.printStackTrace();
+			stopBackground();
 			myPlayErrorMessage = "Corrupted Background File";
 		}
 		doAfter();
@@ -214,7 +220,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 
 	private synchronized void addToPlaylist(String uri) {
 		myStatus.myPlaylist.add(new PlaylistItem(uri));
-		if (myStatus.myPlaylist.size() == myStatus.myCurrentTrackNo + 2) {
+		if (myStatus.myPlaylist.size() == myStatus.myCurrentTrackNo + 2 && (myStatus.myState.equals(PlayerStatus.State.PAUSED) || myStatus.myState.equals(PlayerStatus.State.PLAYING))) {
 			prepareNext(getNextNum(myStatus.myCurrentTrackNo));
 		}
 		doAfter();
@@ -371,6 +377,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		}
 		try {
 			AbstractFile f = AbstractFile.create(uri, myContext);
+			f.test();
 			myMP = new MediaPlayer();
 			myMP.setWakeMode(myContext, PowerManager.PARTIAL_WAKE_LOCK);
 			f.setAsSource(myMP, myContext);
@@ -384,10 +391,14 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			myStatus.myCurrentTrackNo = num;
 			myStatus.myState = PlayerStatus.State.PLAYING;
 			prepareNext(getNextNum(myStatus.myCurrentTrackNo));
+		} catch (FileAuthException e) {
+			stopPlaying();
+			doAfter();
+			myPlayErrorMessage = "loginNeeded: " + e.getMessage();
 		} catch (Exception e) {
 			e.printStackTrace();
 			stopPlaying();
-			//			myCorruptedUris.add(uri);
+			doAfter();
 			myPlayErrorMessage = "Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1);
 		}
 	}
@@ -417,10 +428,24 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			setMpVolumeInternal(myStatus.myMpVolume, myNextMP);
 			try {
 				AbstractFile f = AbstractFile.create(uri, myContext);
+				f.test();
 				f.setAsSource(myNextMP, myContext);
 				myNextMP.prepareAsync();
+			} catch (FileAuthException e) {
+				myNextMPisPrepared = false;
+				myNextMP.reset();
+				myNextMP.release();
+				myNextMP = null;
+				myPlayErrorMessage = "loginNeeded: " + e.getMessage();
+				doAfter();
 			} catch (Exception e) {
 				e.printStackTrace();
+				myNextMPisPrepared = false;
+				myNextMP.reset();
+				myNextMP.release();
+				myNextMP = null;
+				myPlayErrorMessage = "Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1);
+				doAfter();
 			}
 			
 		}
