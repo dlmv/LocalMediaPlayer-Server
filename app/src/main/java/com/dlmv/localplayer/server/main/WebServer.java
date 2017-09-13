@@ -143,13 +143,13 @@ public class WebServer extends NanoHTTPD {
 			}
 
 			if (uri.equals("/test")) {
-				String path = (String) parms.get("path");
-				if (path == null || "".equals(path)) {
-					return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
-				}
-				String login = (String) parms.get("login");
-				String password = (String) parms.get("password");
 				try {
+					String path = (String) parms.get("path");
+					if (path == null || "".equals(path)) {
+						return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
+					}
+					String login = (String) parms.get("login");
+					String password = (String) parms.get("password");
 					AbstractFile f;
 					if (login != null && password != null) {
 						f = AbstractFile.create(path, myContext, login, password);
