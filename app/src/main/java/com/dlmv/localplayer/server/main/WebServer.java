@@ -41,6 +41,8 @@ public class WebServer extends NanoHTTPD {
 
 	private final int myStreamingPort;
 
+	public final int Port;
+
 	//	private WifiManager.MulticastLock myLock = null;
 	//	private ArrayList<JmDNS> myJmDNSes = new ArrayList<JmDNS>();
 	private Context myContext;
@@ -67,8 +69,26 @@ public class WebServer extends NanoHTTPD {
 		return -1;
 	}
 
-	WebServer(int port, Context context) throws IOException {
+	static WebServer tryCreateWebServer(int port, Context context) throws IOException {
+		/*int i = 0;
+		while(i < 1000) {
+			try {
+				return new WebServer(port + i, context);
+			} catch (BindException ignored) {
+			}
+			try {
+				return new WebServer(port - i, context);
+			} catch (BindException ignored) {
+			}
+			++i;
+		}*/
+		return new WebServer(port, context);
+	}
+
+	private WebServer(int port, Context context) throws IOException {
 		super(port, Environment.getExternalStorageDirectory());
+		Log.d("WTF", "start");
+		Port = port;
 		myContext = context;
 		myStreamingPort = initStreamer(port);
 		myController = new PlayerController(myContext);

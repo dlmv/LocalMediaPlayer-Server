@@ -7,6 +7,7 @@ import android.app.*;
 import android.content.*;
 import android.os.*;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 
@@ -56,7 +57,7 @@ public class ServerService extends Service {
 					sendBroadcast(i);
 					break;
 				case STATE_FAILED:
-					Toast.makeText(getApplicationContext(), myError, Toast.LENGTH_SHORT).show();
+					Toast.makeText(getApplicationContext(), myError, Toast.LENGTH_LONG).show();
 					i.setAction(MainActivity.STOPPING);
 					sendBroadcast(i);
 					stopSelf();
@@ -102,7 +103,8 @@ public class ServerService extends Service {
 						myPort = Integer.parseInt(portStr);
 					}
 					final int port = myPort;
-					WebServer server = new WebServer(port, ServerService.this);
+					WebServer server = WebServer.tryCreateWebServer(port, ServerService.this);
+					myPort = server.Port;
 					((RootApplication)getApplication()).Server = server;
 					myStreamingPort = server.getStreamingPort();
 					server.setPass(myPass);
