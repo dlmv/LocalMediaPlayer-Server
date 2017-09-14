@@ -22,7 +22,7 @@ public class LoginDB {
 		}
 		
 		public String getXml() throws UnsupportedEncodingException {
-			return "<share name=\"" + URLEncoder.encode(Share, "UTF-8") + "\"/>";
+			return "<share name=\"%NAME%\" login=\"%LOGIN%\" />".replace("%NAME%", URLEncoder.encode(Share, "UTF-8")).replace("%LOGIN%", URLEncoder.encode(Login, "UTF-8"));
 		}
 	}
 
