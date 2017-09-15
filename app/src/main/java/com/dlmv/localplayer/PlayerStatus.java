@@ -29,7 +29,7 @@ public class PlayerStatus {
 		}
 		return PlaylistType.LINEAR;
 	}
-	
+
 	public static class PlaylistItem {
 		public final String Path;
 		public PlaylistItem(String uri) {
@@ -44,7 +44,7 @@ public class PlayerStatus {
 			return name.substring(divider + 1);
 		}
 	}
-	
+
 	public static final int STOP = 0;
 	public static final int PAUSE = 1;
 
@@ -58,7 +58,7 @@ public class PlayerStatus {
 	public int myMaxVolume;
 	public int myStopAfter = -1;
 	public int myStopAfterType = STOP;
-	
+
 	public int myMpVolume = 100;
 	public int myMpMaxVolume = 100;
 	public int myBackMpVolume = 100;
@@ -93,7 +93,7 @@ public class PlayerStatus {
 				.replace("%TYPE%", myType.name())
 				.replace("%PLAYLIST%", pls);
 	}
-	
+
 	public static PlayerStatus fromDom(Element e) throws UnsupportedEncodingException {
 		PlayerStatus status = new PlayerStatus();
 		status.myState = State.valueOf(e.getAttribute("state"));
@@ -106,7 +106,7 @@ public class PlayerStatus {
 		status.myMpMaxVolume = Integer.parseInt(e.getAttribute("mpmaxvolume"));
 		status.myBackMpVolume = Integer.parseInt(e.getAttribute("backmpvolume"));
 		status.myBackMpMaxVolume = Integer.parseInt(e.getAttribute("backmpmaxvolume"));
-		status.myBackItem = e.getAttribute("backmpmaxvolume").equals("") ? null : new PlaylistItem(e.getAttribute("backmpmaxvolume"));
+		status.myBackItem = e.getAttribute("backpath").equals("") ? null : new PlaylistItem(e.getAttribute("backmpmaxvolume"));
 		status.myCurrentTrackNo = Integer.parseInt(e.getAttribute("playing"));
 		status.myStopAfter = Integer.parseInt(e.getAttribute("stopAfter"));
 		status.myStopAfterType = Integer.parseInt(e.getAttribute("stopType"));
@@ -120,6 +120,4 @@ public class PlayerStatus {
 		}
 		return status;
 	}
-	
-	
 }
