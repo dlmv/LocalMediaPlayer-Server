@@ -106,7 +106,7 @@ public class PlayerStatus {
 		status.myMpMaxVolume = Integer.parseInt(e.getAttribute("mpmaxvolume"));
 		status.myBackMpVolume = Integer.parseInt(e.getAttribute("backmpvolume"));
 		status.myBackMpMaxVolume = Integer.parseInt(e.getAttribute("backmpmaxvolume"));
-		status.myBackItem = e.getAttribute("backpath").equals("") ? null : new PlaylistItem(e.getAttribute("backmpmaxvolume"));
+		status.myBackItem = e.getAttribute("backpath").equals("") ? null : new PlaylistItem(e.getAttribute("backpath"));
 		status.myCurrentTrackNo = Integer.parseInt(e.getAttribute("playing"));
 		status.myStopAfter = Integer.parseInt(e.getAttribute("stopAfter"));
 		status.myStopAfterType = Integer.parseInt(e.getAttribute("stopType"));
