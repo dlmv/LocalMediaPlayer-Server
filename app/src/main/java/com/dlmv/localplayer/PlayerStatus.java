@@ -89,7 +89,7 @@ public class PlayerStatus {
 				.replace("%MPMAXVOLUME%", Integer.toString(myMpMaxVolume))
 				.replace("%BACKMPVOLUME%", Integer.toString(myBackMpVolume))
 				.replace("%BACKMPMAXVOLUME%", Integer.toString(myBackMpMaxVolume))
-				.replace("%BACKPATH%", myBackItem != null ? myBackItem.Path : "")
+				.replace("%BACKPATH%", myBackItem != null ? URLEncoder.encode(myBackItem.Path,"UTF-8") : "")
 				.replace("%TYPE%", myType.name())
 				.replace("%PLAYLIST%", pls);
 	}
@@ -106,7 +106,7 @@ public class PlayerStatus {
 		status.myMpMaxVolume = Integer.parseInt(e.getAttribute("mpmaxvolume"));
 		status.myBackMpVolume = Integer.parseInt(e.getAttribute("backmpvolume"));
 		status.myBackMpMaxVolume = Integer.parseInt(e.getAttribute("backmpmaxvolume"));
-		status.myBackItem = e.getAttribute("backpath").equals("") ? null : new PlaylistItem(e.getAttribute("backpath"));
+		status.myBackItem = e.getAttribute("backpath").equals("") ? null : new PlaylistItem(URLDecoder.decode(e.getAttribute("backpath"), "UTF-8"));
 		status.myCurrentTrackNo = Integer.parseInt(e.getAttribute("playing"));
 		status.myStopAfter = Integer.parseInt(e.getAttribute("stopAfter"));
 		status.myStopAfterType = Integer.parseInt(e.getAttribute("stopType"));
