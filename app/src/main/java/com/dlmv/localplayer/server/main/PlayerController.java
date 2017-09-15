@@ -137,11 +137,11 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			myBackMP.start();
 		} catch (FileAuthException e) {
 			stopBackground();
-			myPlayErrorMessage = "loginNeeded: " + e.getMessage();
+			setErrorMessage("loginNeeded: " + e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
 			stopBackground();
-			myPlayErrorMessage = "Corrupted Background File";
+			setErrorMessage("Corrupted Background File");
 		}
 		doAfter();
 	}
@@ -272,7 +272,8 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		doAfter();
 	}
 	
-	synchronized String getStatus() {
+	synchronized String getStatus(String ip) {
+		addIpForErrorMessages(ip);
 		if (myStatus.myState.equals(PlayerStatus.State.PLAYING) || myStatus.myState.equals(PlayerStatus.State.PAUSED)) {
 			myStatus.myCurrentDuration = myMP.getDuration();
 			myStatus.myCurrentPosition = myMP.getCurrentPosition();
@@ -287,14 +288,14 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			res = myStatus.getXml();
 		} catch (UnsupportedEncodingException e) {
 			res = "";
-			myPlayErrorMessage = "UnsupportedEncodingException";
+			setErrorMessage("UnsupportedEncodingException");
 			e.printStackTrace();
 		}
-		if (myPlayErrorMessage == null) {
+		String errorMessage = getErrorMessage(ip);
+		if (errorMessage == null) {
 			res = WebServer.ResponseTemplate.replace("%BODY%", res).replace("%VALID%", "true").replace("%REASON%", "Ok");
 		} else {
-			res = WebServer.ResponseTemplate.replace("%BODY%", res).replace("%VALID%", "false").replace("%REASON%", myPlayErrorMessage);
-			myPlayErrorMessage = null;
+			res = WebServer.ResponseTemplate.replace("%BODY%", res).replace("%VALID%", "false").replace("%REASON%", errorMessage);
 		}
 		return res;
 	}
@@ -330,7 +331,27 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		}
 	}
 
-	private String myPlayErrorMessage;
+	private HashMap<String, String> myPlayErrorMessages = new HashMap<>();
+
+	private void setErrorMessage(String message) {
+		synchronized (myPlayErrorMessages) {
+			for (String key : myPlayErrorMessages.keySet()) {
+				myPlayErrorMessages.put(key, message);
+			}
+		}
+	}
+
+	private void addIpForErrorMessages(String ip) {
+		if (!myPlayErrorMessages.containsKey(ip)) {
+			myPlayErrorMessages.put(ip, null);
+		}
+	}
+
+	private String getErrorMessage(String ip) {
+		String res = myPlayErrorMessages.get(ip);
+		myPlayErrorMessages.put(ip, null);
+		return res;
+	}
 
 	private void startPlaying(int num) {
 		String uri;
@@ -394,12 +415,12 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		} catch (FileAuthException e) {
 			stopPlaying();
 			doAfter();
-			myPlayErrorMessage = "loginNeeded: " + e.getMessage();
+			setErrorMessage("loginNeeded: " + e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
 			stopPlaying();
 			doAfter();
-			myPlayErrorMessage = "Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1);
+			setErrorMessage("Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1));
 		}
 	}
 
@@ -436,7 +457,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 				myNextMP.reset();
 				myNextMP.release();
 				myNextMP = null;
-				myPlayErrorMessage = "loginNeeded: " + e.getMessage();
+				setErrorMessage("loginNeeded: " + e.getMessage());
 				doAfter();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -444,7 +465,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 				myNextMP.reset();
 				myNextMP.release();
 				myNextMP = null;
-				myPlayErrorMessage = "Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1);
+				setErrorMessage("Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1));
 				doAfter();
 			}
 			
@@ -546,9 +567,9 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			if (mp == myMP) {
 				if (myStatus.myCurrentTrackNo < myStatus.myPlaylist.size()) {
 					String uri = myStatus.myPlaylist.get(myStatus.myCurrentTrackNo).Path;
-					myPlayErrorMessage = "Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1);
+					setErrorMessage("Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1));
 				} else {
-					myPlayErrorMessage = "Unknown playback error";
+					setErrorMessage("Unknown playback error");
 				}
 			}
 			if (mp == myNextMP) {
@@ -562,7 +583,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 				}.start();
 			}
 			if (mp == myBackMP) {
-				myPlayErrorMessage = "Corrupted Background File";
+				setErrorMessage("Corrupted Background File");
 			}
 		} finally {
 			doAfter();

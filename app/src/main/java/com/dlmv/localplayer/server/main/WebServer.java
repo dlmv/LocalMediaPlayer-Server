@@ -247,7 +247,7 @@ public class WebServer extends NanoHTTPD {
 			}
 
 			if (uri.equals("/status")) {
-				String res = myController.getStatus();
+				String res = myController.getStatus(ip);
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
 
@@ -263,7 +263,7 @@ public class WebServer extends NanoHTTPD {
 				}
 				Log.e("notify", "notified: " + ip);
 				myNeedToNotifyClient.put(ip, false);
-				String res = myController.getStatus();
+				String res = myController.getStatus(ip);
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
 
