@@ -114,6 +114,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			myBackMP.release();
 			myBackMP = null;
 		}
+		myStatus.myBackItem = null;
 	}
 
 	void stopBackground() {
@@ -135,6 +136,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			myBackMP.setLooping(true);
 			setMpVolumeInternal(myStatus.myBackMpVolume, myBackMP);
 			myBackMP.start();
+            myStatus.myBackItem = new PlaylistItem(uri);
 		} catch (FileAuthException e) {
 			stopBackground();
 			setErrorMessage("loginNeeded: " + e.getMessage());

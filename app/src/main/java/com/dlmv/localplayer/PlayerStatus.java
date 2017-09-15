@@ -49,6 +49,7 @@ public class PlayerStatus {
 	public static final int PAUSE = 1;
 
 	public ArrayList<PlaylistItem> myPlaylist = new ArrayList<>();
+	public PlaylistItem myBackItem;
 	public int myCurrentTrackNo;
 	public int myCurrentDuration;
 	public int myCurrentPosition;
@@ -63,7 +64,7 @@ public class PlayerStatus {
 	public int myBackMpVolume = 100;
 	public int myBackMpMaxVolume = 100;
 
-	private final String ourStatusTemplate = "<status state=\"%STATE%\" playing=\"%NUM%\" stopAfter=\"%STOPNUM%\" stopType=\"%STOPTYPE%\" duration=\"%DURATION%\" radio=\"%RADIO%\" position=\"%POSITION%\" buffered=\"%BUFFER%\" volume=\"%VOLUME%\" maxvolume=\"%MAXVOLUME%\" mpvolume=\"%MPVOLUME%\" mpmaxvolume=\"%MPMAXVOLUME%\" backmpvolume=\"%BACKMPVOLUME%\" backmpmaxvolume=\"%BACKMPMAXVOLUME%\" playtype=\"%TYPE%\">\n%PLAYLIST%</status>\n";
+	private final String ourStatusTemplate = "<status state=\"%STATE%\" playing=\"%NUM%\" stopAfter=\"%STOPNUM%\" stopType=\"%STOPTYPE%\" duration=\"%DURATION%\" radio=\"%RADIO%\" position=\"%POSITION%\" buffered=\"%BUFFER%\" volume=\"%VOLUME%\" maxvolume=\"%MAXVOLUME%\" mpvolume=\"%MPVOLUME%\" mpmaxvolume=\"%MPMAXVOLUME%\" backmpvolume=\"%BACKMPVOLUME%\" backmpmaxvolume=\"%BACKMPMAXVOLUME%\" backpath=\"%BACKPATH%\" playtype=\"%TYPE%\">\n%PLAYLIST%</status>\n";
 	private final String ourItemTemplate = "<item path=\"%PATH%\"/>\n";
 
 	public String getXml() throws UnsupportedEncodingException  {
@@ -88,6 +89,7 @@ public class PlayerStatus {
 				.replace("%MPMAXVOLUME%", Integer.toString(myMpMaxVolume))
 				.replace("%BACKMPVOLUME%", Integer.toString(myBackMpVolume))
 				.replace("%BACKMPMAXVOLUME%", Integer.toString(myBackMpMaxVolume))
+				.replace("%BACKPATH%", myBackItem != null ? myBackItem.Path : "")
 				.replace("%TYPE%", myType.name())
 				.replace("%PLAYLIST%", pls);
 	}
@@ -104,6 +106,7 @@ public class PlayerStatus {
 		status.myMpMaxVolume = Integer.parseInt(e.getAttribute("mpmaxvolume"));
 		status.myBackMpVolume = Integer.parseInt(e.getAttribute("backmpvolume"));
 		status.myBackMpMaxVolume = Integer.parseInt(e.getAttribute("backmpmaxvolume"));
+		status.myBackItem = e.getAttribute("backmpmaxvolume").equals("") ? null : new PlaylistItem(e.getAttribute("backmpmaxvolume"));
 		status.myCurrentTrackNo = Integer.parseInt(e.getAttribute("playing"));
 		status.myStopAfter = Integer.parseInt(e.getAttribute("stopAfter"));
 		status.myStopAfterType = Integer.parseInt(e.getAttribute("stopType"));
