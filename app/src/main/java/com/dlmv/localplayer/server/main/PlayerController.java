@@ -9,6 +9,7 @@ import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
 import android.os.PowerManager;
+import android.util.Log;
 
 import com.dlmv.localplayer.*;
 import com.dlmv.localplayer.PlayerStatus.PlaylistItem;
@@ -140,10 +141,12 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		} catch (FileAuthException e) {
 			stopBackground();
 			setErrorMessage("loginNeeded: " + e.getMessage());
+			doAfter();
 		} catch (Exception e) {
 			e.printStackTrace();
 			stopBackground();
 			setErrorMessage("Corrupted Background File");
+			doAfter();
 		}
 		doAfter();
 	}
@@ -275,7 +278,6 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 	}
 	
 	synchronized String getStatus(String ip) {
-		addIpForErrorMessages(ip);
 		if (myStatus.myState.equals(PlayerStatus.State.PLAYING) || myStatus.myState.equals(PlayerStatus.State.PAUSED)) {
 			myStatus.myCurrentDuration = myMP.getDuration();
 			myStatus.myCurrentPosition = myMP.getCurrentPosition();
@@ -333,26 +335,39 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		}
 	}
 
-	private HashMap<String, String> myPlayErrorMessages = new HashMap<>();
+	private String myPlayErrorMessage = null;
+	private final HashSet<String> myNotifiedIps = new HashSet<>();
+
+	private Timer myErrorTimer;
 
 	private void setErrorMessage(String message) {
-		synchronized (myPlayErrorMessages) {
-			for (String key : myPlayErrorMessages.keySet()) {
-				myPlayErrorMessages.put(key, message);
-			}
-		}
-	}
-
-	private void addIpForErrorMessages(String ip) {
-		if (!myPlayErrorMessages.containsKey(ip)) {
-			myPlayErrorMessages.put(ip, null);
+		synchronized (myNotifiedIps) {
+			myNotifiedIps.clear();
+			myPlayErrorMessage = message;
+			final Timer t = new Timer();
+			myErrorTimer = t;
+			myErrorTimer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					if (myErrorTimer == t) {
+						myNotifiedIps.clear();
+						myPlayErrorMessage = null;
+						Log.d("WTF", "clear error");
+					}
+				}
+			}, 20000);
 		}
 	}
 
 	private String getErrorMessage(String ip) {
-		String res = myPlayErrorMessages.get(ip);
-		myPlayErrorMessages.put(ip, null);
-		return res;
+		synchronized (myNotifiedIps) {
+			if (!myNotifiedIps.contains(ip)) {
+				myNotifiedIps.add(ip);
+				return myPlayErrorMessage;
+			} else {
+				return null;
+			}
+		}
 	}
 
 	private void startPlaying(int num) {
@@ -416,13 +431,13 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			prepareNext(getNextNum(myStatus.myCurrentTrackNo));
 		} catch (FileAuthException e) {
 			stopPlaying();
-			doAfter();
 			setErrorMessage("loginNeeded: " + e.getMessage());
+			doAfter();
 		} catch (Exception e) {
 			e.printStackTrace();
 			stopPlaying();
-			doAfter();
 			setErrorMessage("Corrupted File:  " + uri.substring(uri.lastIndexOf("/") + 1));
+			doAfter();
 		}
 	}
 
