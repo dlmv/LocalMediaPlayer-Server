@@ -23,7 +23,8 @@ public class MainActivity extends Activity {
 	private String myIp = "Not connected";
 
 	public static final String PREFS_NAME = "TestMpPrefs";
-	public static final String PASSWD = "password";
+	public static final String PASSWORD = "password";
+	public static final String MASTER_PASSWORD = "master_password";
 	public static final String PORT1 = "port1";
 	public static final String START = "start";
 	public static final String START_LAUNCH = "start_merle";
@@ -169,7 +170,6 @@ public class MainActivity extends Activity {
 		myStartButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
 				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-				String pass = settings.getString(PASSWD, "");
 				int port1 = Integer.parseInt(myPortEdit.getText().toString());
 				if (port1 < 8000) {
 					Toast.makeText(MainActivity.this, "Better to use ports greater than 8000", Toast.LENGTH_SHORT).show();
@@ -186,7 +186,6 @@ public class MainActivity extends Activity {
 				Intent startIntent = new Intent(MainActivity.this, ServerService.class);
 				startIntent.putExtra(ServerService.PORT, myPortEdit.getText().toString());
 				startIntent.putExtra(ServerService.STREAMING_PORT, myStreamingPortEdit.getText().toString());
-				startIntent.putExtra(ServerService.PASS, pass);
 				startService(startIntent);
 				waitForResponse("Please, wait...", "Starting");
 			}
@@ -216,10 +215,10 @@ public class MainActivity extends Activity {
 					public void onClick(DialogInterface dialog1, int which) {
 						SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 						SharedPreferences.Editor editor = settings.edit();
-						editor.putString(PASSWD, input.getText().toString());
+						editor.putString(MASTER_PASSWORD, input.getText().toString());
 						WebServer server = ((RootApplication)getApplication()).Server;
 						if (server != null) {
-							server.setPass(input.getText().toString());
+							server.setMasterPassword(input.getText().toString());
 						}
 						editor.apply();
 						dialog1.dismiss();

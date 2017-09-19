@@ -32,8 +32,11 @@ public abstract class ServerPath {
     public static final String STOP_BACKGROUND = "stopBackground";
     public static final String LOGIN_LIST = "loginList";
     public static final String FORGET_LOGIN = "forgetLogin";
+    public static final String SET_PASSWORD = "setPassword";
+
 
     public static final String PASSWORD = "password";
+    public static final String MASTER_PASSWORD = "masterPassword";
     public static final String PATH = "path";
     public static final String REQUEST = "request";
     public static final String NUM = "num";

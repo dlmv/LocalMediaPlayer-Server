@@ -18,10 +18,8 @@ public class BootReceiver extends BroadcastReceiver {
 			return;
 		}
 		int port1 = settings.getInt(MainActivity.PORT1, 8123);
-		String pass = settings.getString(MainActivity.PASSWD, "");
 		Intent startIntent = new Intent(context, ServerService.class);
 		startIntent.putExtra(ServerService.PORT, Integer.toString(port1));
-		startIntent.putExtra(ServerService.PASS, pass);
 		context.startService(startIntent);
 	}
 

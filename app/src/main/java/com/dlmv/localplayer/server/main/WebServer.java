@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import android.content.SharedPreferences;
 import android.os.*;
 import android.util.Log;
 
@@ -124,11 +125,41 @@ public class WebServer extends NanoHTTPD {
 
 	private HashSet<String> myAuthorizedIps = new HashSet<>();
 
-	private String myPass = "";
+	private String myPassword = "";
+    private String myMasterPassword = "";
 
-	void setPass(String p) {
-		myPass = p;
+
+    void setPassword(String p) {
+		myPassword = p;
+        clearAuthorized();
+        savePasswords();
 	}
+
+    void setMasterPassword(String p) {
+        myMasterPassword = p;
+        savePasswords();
+    }
+
+    private void savePasswords() {
+        SharedPreferences settings = myContext.getSharedPreferences(MainActivity.PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(MainActivity.PASSWORD, myPassword);
+        editor.putString(MainActivity.MASTER_PASSWORD, myMasterPassword);
+        editor.apply();
+    }
+
+	void authorize(String ip) {
+        myAuthorizedIps.add(ip);
+        myNotifiers.put(ip, new Object());
+        myNeedToNotifyClient.put(ip, false);
+    }
+
+    void clearAuthorized() {
+        myAuthorizedIps.clear();
+        myNotifiers.clear();
+        myNeedToNotifyClient.clear();
+    }
+
 
 	@Override
 	public Response serve(String uri, String method, Properties header, Properties parms, Properties files, String ip) {
@@ -142,28 +173,26 @@ public class WebServer extends NanoHTTPD {
             }
 
 			if (!myAuthorizedIps.contains(ip)) {
-				if ("".equals(myPass)) {
-					myAuthorizedIps.add(ip);
-					myNotifiers.put(ip, new Object());
-					myNeedToNotifyClient.put(ip, false);
-					if (uri.equals(ServerPath.LOGIN)) {
+				if (uri.equals(ServerPath.LOGIN)) {
+					String pass = (String) parms.get(ServerPath.PASSWORD);
+					if ("".equals(myPassword) || (pass != null && pass.equals(myPassword))) {
+						authorize(ip);
 						return new Response(HTTP_OK, MIME_PLAINTEXT, "");
 					}
-				} else {
-					if (uri.equals(ServerPath.LOGIN)) {
-						String pass = (String) parms.get(ServerPath.PASSWORD);
-						if (pass != null && pass.equals(myPass)) {
-							myAuthorizedIps.add(ip);
-							myNotifiers.put(ip, new Object());
-							myNeedToNotifyClient.put(ip, false);
-							return new Response(HTTP_OK, MIME_PLAINTEXT, "");
-						}
-					}
-					return new Response("401 Unauthorized", MIME_PLAINTEXT, "");
 				}
+				return new Response("401 Unauthorized", MIME_PLAINTEXT, "");
 			}
 			
 			if (uri.equals(ServerPath.LOGIN)) {
+				return new Response(HTTP_OK, MIME_PLAINTEXT, "");
+			}
+
+			if (uri.equals(ServerPath.SET_PASSWORD)) {
+				String pass = (String) parms.get(ServerPath.PASSWORD);
+				String mpass = (String) parms.get(ServerPath.MASTER_PASSWORD);
+				if (pass != null && mpass != null && mpass.equals(myMasterPassword)) {
+					setPassword(pass);
+				}
 				return new Response(HTTP_OK, MIME_PLAINTEXT, "");
 			}
 

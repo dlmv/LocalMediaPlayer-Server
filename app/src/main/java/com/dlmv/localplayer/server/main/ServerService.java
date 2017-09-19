@@ -19,7 +19,6 @@ public class ServerService extends Service {
 	public final static String PORT = "server_port";
 	final static String STREAMING_PORT = "streaming_port";
 	final static String IP = "server_ip";
-	public static final String PASS = "server_password";
 
 	final static String ASK_STATE = "mp_ask_state";
 
@@ -34,8 +33,7 @@ public class ServerService extends Service {
 	private int myPort;
 	private int myStreamingPort;
 	private String myError = "";
-	private String myPass = "";
-	
+
 	final Handler myHandler = new Handler() {
 		public void handleMessage (Message msg) {
 			Intent i = new Intent();
@@ -95,11 +93,10 @@ public class ServerService extends Service {
 			public void run () {
 				try {
 					String portStr = intent.getStringExtra(PORT);
+					SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
 					if (portStr == null) {
-						SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
 						myPort = settings.getInt(MainActivity.PORT1, 8123);
 					} else {
-						myPass = intent.getStringExtra(PASS);
 						myPort = Integer.parseInt(portStr);
 					}
 					final int port = myPort;
@@ -107,7 +104,12 @@ public class ServerService extends Service {
 					myPort = server.Port;
 					((RootApplication)getApplication()).Server = server;
 					myStreamingPort = server.getStreamingPort();
-					server.setPass(myPass);
+					String pass = settings.getString(MainActivity.PASSWORD, "");
+					String mpass = settings.getString(MainActivity.MASTER_PASSWORD, "");
+
+
+					server.setPassword(pass);
+					server.setMasterPassword(mpass);
 					myState = STATE_STARTED;
 					myHandler.sendEmptyMessage(0);
 				} catch (Exception e) {
