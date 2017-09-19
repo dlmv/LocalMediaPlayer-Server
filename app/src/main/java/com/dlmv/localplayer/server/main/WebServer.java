@@ -378,6 +378,16 @@ public class WebServer extends NanoHTTPD {
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
+			if (uri.equals("/pausebackground")) {
+				myController.pauseBackground();
+				String res = "";
+				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+			}
+			if (uri.equals("/resumebackground")) {
+				myController.resumeBackground();
+				String res = "";
+				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+			}
 			if (uri.equals("/stopbackground")) {
 				myController.stopBackground();
 				String res = "";

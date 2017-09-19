@@ -16,6 +16,8 @@ public class PlayerStatus {
 		WAITING,
 	}
 	public State myState = State.STOPPED;
+	public State myBackState = State.STOPPED;
+
 
 	public enum PlaylistType {
 		LINEAR,
@@ -64,7 +66,7 @@ public class PlayerStatus {
 	public int myBackMpVolume = 100;
 	public int myBackMpMaxVolume = 100;
 
-	private final String ourStatusTemplate = "<status state=\"%STATE%\" playing=\"%NUM%\" stopAfter=\"%STOPNUM%\" stopType=\"%STOPTYPE%\" duration=\"%DURATION%\" radio=\"%RADIO%\" position=\"%POSITION%\" buffered=\"%BUFFER%\" volume=\"%VOLUME%\" maxvolume=\"%MAXVOLUME%\" mpvolume=\"%MPVOLUME%\" mpmaxvolume=\"%MPMAXVOLUME%\" backmpvolume=\"%BACKMPVOLUME%\" backmpmaxvolume=\"%BACKMPMAXVOLUME%\" backpath=\"%BACKPATH%\" playtype=\"%TYPE%\">\n%PLAYLIST%</status>\n";
+	private final String ourStatusTemplate = "<status state=\"%STATE%\" playing=\"%NUM%\" stopAfter=\"%STOPNUM%\" stopType=\"%STOPTYPE%\" duration=\"%DURATION%\" radio=\"%RADIO%\" position=\"%POSITION%\" buffered=\"%BUFFER%\" volume=\"%VOLUME%\" maxvolume=\"%MAXVOLUME%\" mpvolume=\"%MPVOLUME%\" mpmaxvolume=\"%MPMAXVOLUME%\" backmpvolume=\"%BACKMPVOLUME%\" backmpmaxvolume=\"%BACKMPMAXVOLUME%\" backpath=\"%BACKPATH%\" backstate=\"%BACKSTATE%\" playtype=\"%TYPE%\">\n%PLAYLIST%</status>\n";
 	private final String ourItemTemplate = "<item path=\"%PATH%\"/>\n";
 
 	public String getXml() throws UnsupportedEncodingException  {
@@ -90,6 +92,7 @@ public class PlayerStatus {
 				.replace("%BACKMPVOLUME%", Integer.toString(myBackMpVolume))
 				.replace("%BACKMPMAXVOLUME%", Integer.toString(myBackMpMaxVolume))
 				.replace("%BACKPATH%", myBackItem != null ? URLEncoder.encode(myBackItem.Path,"UTF-8") : "")
+				.replace("%BACKSTATE%", myBackState.name())
 				.replace("%TYPE%", myType.name())
 				.replace("%PLAYLIST%", pls);
 	}
@@ -107,6 +110,7 @@ public class PlayerStatus {
 		status.myBackMpVolume = Integer.parseInt(e.getAttribute("backmpvolume"));
 		status.myBackMpMaxVolume = Integer.parseInt(e.getAttribute("backmpmaxvolume"));
 		status.myBackItem = e.getAttribute("backpath").equals("") ? null : new PlaylistItem(URLDecoder.decode(e.getAttribute("backpath"), "UTF-8"));
+		status.myBackState = State.valueOf(e.getAttribute("backstate"));
 		status.myCurrentTrackNo = Integer.parseInt(e.getAttribute("playing"));
 		status.myStopAfter = Integer.parseInt(e.getAttribute("stopAfter"));
 		status.myStopAfterType = Integer.parseInt(e.getAttribute("stopType"));

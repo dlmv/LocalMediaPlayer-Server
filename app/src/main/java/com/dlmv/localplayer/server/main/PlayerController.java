@@ -115,7 +115,24 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			myBackMP.release();
 			myBackMP = null;
 		}
+		myStatus.myBackState = PlayerStatus.State.STOPPED;
 		myStatus.myBackItem = null;
+	}
+
+	void resumeBackground() {
+		if (myStatus.myBackState.equals(PlayerStatus.State.PAUSED) && myBackMP != null) {
+			myBackMP.start();
+			myStatus.myBackState = PlayerStatus.State.PLAYING;
+		}
+		doAfter();
+	}
+
+	void pauseBackground() {
+		if (myStatus.myBackState.equals(PlayerStatus.State.PLAYING) && myBackMP != null) {
+			myBackMP.pause();
+			myStatus.myBackState = PlayerStatus.State.PAUSED;
+		}
+		doAfter();
 	}
 
 	void stopBackground() {
@@ -129,6 +146,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			AbstractFile f = AbstractFile.create(uri, myContext);
 			f.test();
 			myBackMP = new MediaPlayer();
+			myStatus.myBackState = PlayerStatus.State.WAITING;
 			myBackMP.setWakeMode(myContext, PowerManager.PARTIAL_WAKE_LOCK);
 			f.setAsSource(myBackMP, myContext);
 			myBackMP.setOnCompletionListener(this);
@@ -138,6 +156,7 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 			setMpVolumeInternal(myStatus.myBackMpVolume, myBackMP);
 			myBackMP.start();
             myStatus.myBackItem = new PlaylistItem(uri);
+			myStatus.myBackState = PlayerStatus.State.PLAYING;
 		} catch (FileAuthException e) {
 			stopBackground();
 			setErrorMessage("loginNeeded: " + e.getMessage());
