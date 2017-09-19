@@ -156,7 +156,7 @@ public class ServerService extends Service {
 	}
 
 	private void showNotification() {
-		CharSequence text = "TestMP Server is running";
+		CharSequence text = "LocalPlayer server is running";
 
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
 				new Intent(this, MainActivity.class), 0);
