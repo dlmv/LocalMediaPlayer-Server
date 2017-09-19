@@ -19,6 +19,7 @@ import com.dlmv.localplayer.server.utils.FileUtils;
 import com.dlmv.localplayer.server.utils.MediaReceiver;
 import com.dlmv.localplayer.server.utils.NaturalOrderComparator;
 import com.dlmv.localplayer.server.utils.RootApplication;
+import com.dlmv.localplayer.server.utils.ServerPath;
 import com.test.smbstreamer.Streamer;
 
 import android.content.ComponentName;
@@ -136,17 +137,21 @@ public class WebServer extends NanoHTTPD {
 				return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
 			}
 
+			if (uri.startsWith("/")) {
+                uri = uri.substring(1);
+            }
+
 			if (!myAuthorizedIps.contains(ip)) {
 				if ("".equals(myPass)) {
 					myAuthorizedIps.add(ip);
 					myNotifiers.put(ip, new Object());
 					myNeedToNotifyClient.put(ip, false);
-					if (uri.equals("/login")) {
+					if (uri.equals(ServerPath.LOGIN)) {
 						return new Response(HTTP_OK, MIME_PLAINTEXT, "");
 					}
 				} else {
-					if (uri.equals("/login")) {
-						String pass = (String) parms.get("password");
+					if (uri.equals(ServerPath.LOGIN)) {
+						String pass = (String) parms.get(ServerPath.PASSWORD);
 						if (pass != null && pass.equals(myPass)) {
 							myAuthorizedIps.add(ip);
 							myNotifiers.put(ip, new Object());
@@ -158,18 +163,18 @@ public class WebServer extends NanoHTTPD {
 				}
 			}
 			
-			if (uri.equals("/login")) {
+			if (uri.equals(ServerPath.LOGIN)) {
 				return new Response(HTTP_OK, MIME_PLAINTEXT, "");
 			}
 
-			if (uri.equals("/test")) {
+			if (uri.equals(ServerPath.CHECK)) {
 				try {
-					String path = (String) parms.get("path");
+					String path = (String) parms.get(ServerPath.PATH);
 					if (path == null || "".equals(path)) {
 						return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
 					}
-					String login = (String) parms.get("login");
-					String password = (String) parms.get("password");
+					String login = (String) parms.get(ServerPath.LOGIN);
+					String password = (String) parms.get(ServerPath.PASSWORD);
 					AbstractFile f;
 					if (login != null && password != null) {
 						f = AbstractFile.create(path, myContext, login, password);
@@ -177,22 +182,22 @@ public class WebServer extends NanoHTTPD {
 						f = AbstractFile.create(path, myContext);
 					}
 					f.test();
-					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "true").replace("%REASON%", "Ok");
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(true)).replace("%REASON%", "Ok");
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				} catch (FileAuthException e) {
-					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "loginNeeded: " + e.getMessage());
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "loginNeeded: " + e.getMessage());
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
 			}
 
-			if (uri.equals("/testShare")) {
+			if (uri.equals(ServerPath.CHECK_SHARE)) {
 				try {
-					String path = (String) parms.get("path");
+					String path = (String) parms.get(ServerPath.PATH);
 					if (path == null || "".equals(path)) {
 						return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
 					}
-					String login = (String) parms.get("login");
-					String password = (String) parms.get("password");
+					String login = (String) parms.get(ServerPath.LOGIN);
+					String password = (String) parms.get(ServerPath.PASSWORD);
 					AbstractFile f;
 					if (login != null && password != null) {
 						f = AbstractFile.create(path, myContext, login, password);
@@ -200,58 +205,58 @@ public class WebServer extends NanoHTTPD {
 						f = AbstractFile.create(path, myContext);
 					}
 					f.children();
-					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "true").replace("%REASON%", "Ok");
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(true)).replace("%REASON%", "Ok");
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				} catch (FileAuthException e) {
-					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "loginNeeded: " + e.getMessage());
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "loginNeeded: " + e.getMessage());
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
 			}
 
-			if (uri.equals("/browse")) {
+			if (uri.equals(ServerPath.BROWSE)) {
 				try {
-					String path = (String) parms.get("path");
+					String path = (String) parms.get(ServerPath.PATH);
 					if (path == null || "".equals(path)) {
 						return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
 					}
-					String login = (String) parms.get("login");
-					String password = (String) parms.get("password");
+					String login = (String) parms.get(ServerPath.LOGIN);
+					String password = (String) parms.get(ServerPath.PASSWORD);
 					if (login != null && password != null) {
 						AbstractFile.create(path, myContext, login, password);
 					}
 					return new Response(HTTP_OK, MIME_PLAINTEXT, browse(path));
 				} catch (FileAuthException e) {
-					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "loginNeeded: " + e.getMessage());
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "loginNeeded: " + e.getMessage());
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
 			}
 
-			if (uri.equals("/search")) {
+			if (uri.equals(ServerPath.SEARCH)) {
 				try {
-					String path = (String) parms.get("path");
-					String request = (String) parms.get("request");
+					String path = (String) parms.get(ServerPath.PATH);
+					String request = (String) parms.get(ServerPath.REQUEST);
 					if (path == null || "".equals(path)) {
 						return new NanoHTTPD.Response(HTTP_NOTFOUND, MIME_PLAINTEXT, "404");
 					}
 					myStopSearchFlag = false;
 					return new Response(HTTP_OK, MIME_PLAINTEXT, search(path, request));
 				} catch (FileAuthException e) {
-					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "loginNeeded: " + e.getMessage());
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "loginNeeded: " + e.getMessage());
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
 			}
 
-			if (uri.equals("/stopsearch")) {
+			if (uri.equals(ServerPath.STOP_SEARCH)) {
 				stopSearch();
 				return new Response(HTTP_OK, MIME_PLAINTEXT, "");
 			}
 
-			if (uri.equals("/status")) {
+			if (uri.equals(ServerPath.STATUS)) {
 				String res = myController.getStatus(ip);
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
 
-			if (uri.equals("/lazystatus")) {
+			if (uri.equals(ServerPath.LAZY_STATUS)) {
 				if (!myNeedToNotifyClient.get(ip)) {
 					try {
 						synchronized (myNotifiers.get(ip)) {
@@ -261,98 +266,97 @@ public class WebServer extends NanoHTTPD {
 						e.printStackTrace();
 					}
 				}
-				Log.e("notify", "notified: " + ip);
 				myNeedToNotifyClient.put(ip, false);
 				String res = myController.getStatus(ip);
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
 
-			if (uri.equals("/enqueue")) {
-				String path = (String) parms.get("path");
+			if (uri.equals(ServerPath.ENQUEUE)) {
+				String path = (String) parms.get(ServerPath.PATH);
 				myController.enqueue(path);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/enqueueandplay")) {
-				String path = (String) parms.get("path");
+			if (uri.equals(ServerPath.ENQUEUE_AND_PLAY)) {
+				String path = (String) parms.get(ServerPath.PATH);
 				myController.enqueueAndPlay(path);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
 
-			if (uri.equals("/setvolume")) {
-				int vol = Integer.parseInt((String) parms.get("volume"));
+			if (uri.equals(ServerPath.SET_VOLUME)) {
+				int vol = Integer.parseInt((String) parms.get(ServerPath.VOLUME));
 				myController.setVolume(vol);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/setmpvolume")) {
-				int vol = Integer.parseInt((String) parms.get("volume"));
+			if (uri.equals(ServerPath.SET_MP_VOLUME)) {
+				int vol = Integer.parseInt((String) parms.get(ServerPath.VOLUME));
 				myController.setMpVolume(vol);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/setbackmpvolume")) {
-				int vol = Integer.parseInt((String) parms.get("volume"));
+			if (uri.equals(ServerPath.SET_BACKMP_VOLUME)) {
+				int vol = Integer.parseInt((String) parms.get(ServerPath.VOLUME));
 				myController.setBackVolume(vol);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/volumeup")) {
+			if (uri.equals(ServerPath.VOLUME_UP)) {
 				myController.volumeUp();
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/volumedown")) {
+			if (uri.equals(ServerPath.VOLUME_DOWN)) {
 				myController.volumeDown();
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
 
-			if (uri.equals("/play")) {
+			if (uri.equals(ServerPath.PLAY)) {
 				myController.play();
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/playnum")) {
-				int num = Integer.parseInt((String) parms.get("num"));
+			if (uri.equals(ServerPath.PLAY_NUM)) {
+				int num = Integer.parseInt((String) parms.get(ServerPath.NUM));
 				myController.play(num);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/remove")) {
-				int start = Integer.parseInt((String) parms.get("start"));
-				int finish = Integer.parseInt((String) parms.get("finish"));
+			if (uri.equals(ServerPath.REMOVE)) {
+				int start = Integer.parseInt((String) parms.get(ServerPath.START));
+				int finish = Integer.parseInt((String) parms.get(ServerPath.FINISH));
 				myController.remove(start, finish);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/pause")) {
+			if (uri.equals(ServerPath.PAUSE)) {
 				myController.pause();
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}	
-			if (uri.equals("/setplaytype")) {
-				String type = (String) parms.get("type");
+			if (uri.equals(ServerPath.SET_PLAYTYPE)) {
+				String type = (String) parms.get(ServerPath.TYPE);
 				myController.setPlaylistType(type);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}	
-			if (uri.equals("/stop")) {
+			if (uri.equals(ServerPath.STOP)) {
 				myController.stop();
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/stopafter")) {
-				int num = Integer.parseInt((String) parms.get("num"));
-				int type = Integer.parseInt((String) parms.get("type"));
+			if (uri.equals(ServerPath.STOP_AFTER)) {
+				int num = Integer.parseInt((String) parms.get(ServerPath.NUM));
+				int type = Integer.parseInt((String) parms.get(ServerPath.TYPE));
 				myController.setStopAfter(num, type);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.startsWith("/seekto")) {
-				int num = Integer.parseInt((String) parms.get("num"));
-				int pos = Integer.parseInt((String) parms.get("position"));
+			if (uri.startsWith(ServerPath.SEEK_TO)) {
+				int num = Integer.parseInt((String) parms.get(ServerPath.NUM));
+				int pos = Integer.parseInt((String) parms.get(ServerPath.POSITION));
 				if (num == myController.getCurrentTrackNo()) {
 					myController.seekTo(pos);
 				}
@@ -360,45 +364,45 @@ public class WebServer extends NanoHTTPD {
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
 
-			if (uri.equals("/clearplaylist")) {
+			if (uri.equals(ServerPath.CLEAR)) {
 				myController.clearPlaylist();
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
 
-			if (uri.equals("/image")) {
-				String path = (String) parms.get("path");
+			if (uri.equals(ServerPath.IMAGE)) {
+				String path = (String) parms.get(ServerPath.PATH);
 				InputStream i = AbstractFile.create(path, myContext).getInputStream();
 				return new Response(HTTP_OK, FileUtils.mimeForPath(path), i);
 			}
 			
-			if (uri.equals("/playbackground")) {
-				String path = (String) parms.get("path");
+			if (uri.equals(ServerPath.PLAY_BACKGROUND)) {
+				String path = (String) parms.get(ServerPath.PATH);
 				myController.playBackground(path);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/pausebackground")) {
+			if (uri.equals(ServerPath.PAUSE_BACKGROUND)) {
 				myController.pauseBackground();
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/resumebackground")) {
+			if (uri.equals(ServerPath.RESUME_BACKGROUND)) {
 				myController.resumeBackground();
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/stopbackground")) {
+			if (uri.equals(ServerPath.STOP_BACKGROUND)) {
 				myController.stopBackground();
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/loginlist")) {
+			if (uri.equals(ServerPath.LOGIN_LIST)) {
 				String res = loginList();
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 			}
-			if (uri.equals("/forgetlogin")) {
-				String share = (String) parms.get("share");
+			if (uri.equals(ServerPath.FORGET_LOGIN)) {
+				String share = (String) parms.get(ServerPath.PATH);
 				((RootApplication)myContext.getApplicationContext()).LoginDB().delete(share);
 				String res = "";
 				return new Response(HTTP_OK, MIME_PLAINTEXT, res);
@@ -426,7 +430,7 @@ public class WebServer extends NanoHTTPD {
 			AbstractFile f = AbstractFile.create(uri, myContext);
 			boolean result = searchRecursive(f, request.toLowerCase(), res);
 			if (!result) {
-				sres = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "Search dismissed");
+				sres = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "Search dismissed");
 				Log.d("res", sres);
 				return sres;
 			}
@@ -448,13 +452,13 @@ public class WebServer extends NanoHTTPD {
 				e.printStackTrace();
 			}
 			sres = ResultTemplate.replace("%PATH%", path).replace("%FILES%", tmp).replace("%REQUEST%", request);
-			sres = ResponseTemplate.replace("%BODY%", sres).replace("%VALID%", "true").replace("%REASON%", "Ok");
+			sres = ResponseTemplate.replace("%BODY%", sres).replace("%VALID%", String.valueOf(true)).replace("%REASON%", "Ok");
 			Log.d("res", sres);
 		} catch (FileAuthException e) {
 			throw e;
 		} catch (FileException e) {
 			e.printStackTrace();
-			sres = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "Server error!");
+			sres = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "Server error!");
 		}
 		return sres;
 	}
@@ -495,9 +499,9 @@ public class WebServer extends NanoHTTPD {
 		try {
 			AbstractFile f = AbstractFile.create(uri, myContext);
 			if  (!f.exists()) {
-				res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "Not Found");
+				res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "Not Found");
 			} else if (!f.readable()) {
-				res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "Forbidden");
+				res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "Forbidden");
 			} else if (f.getMediaType() == AbstractFile.MediaType.DIR) {
 				String tmp = "";
 				List<AbstractFile> list = f.children();
@@ -519,13 +523,13 @@ public class WebServer extends NanoHTTPD {
 					e.printStackTrace();
 				}
 				res = ResultTemplate.replace("%PATH%", path).replace("%FILES%", tmp).replace("%REQUEST%", "");
-				res = ResponseTemplate.replace("%BODY%", res).replace("%VALID%", "true").replace("%REASON%", "Ok");
+				res = ResponseTemplate.replace("%BODY%", res).replace("%VALID%", String.valueOf(true)).replace("%REASON%", "Ok");
 			}
 		} catch (FileAuthException e) {
 			throw e;
 		} catch (FileException e) {
 			e.printStackTrace();
-			res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", "false").replace("%REASON%", "Server error!");
+			res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "Server error!");
 		}
 		return res;
 	}
@@ -542,7 +546,7 @@ public class WebServer extends NanoHTTPD {
 			}
 		}
 		res = LoginsTemplate.replace("%LOGINS%", tmp);
-		res = ResponseTemplate.replace("%BODY%", res).replace("%VALID%", "true").replace("%REASON%", "Ok");
+		res = ResponseTemplate.replace("%BODY%", res).replace("%VALID%", String.valueOf(true)).replace("%REASON%", "Ok");
 		return res;
 	}
 	
