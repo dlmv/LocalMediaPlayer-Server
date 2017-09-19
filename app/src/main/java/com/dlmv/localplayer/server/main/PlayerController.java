@@ -316,9 +316,9 @@ public class PlayerController implements MediaPlayer.OnCompletionListener, Media
 		}
 		String errorMessage = getErrorMessage(ip);
 		if (errorMessage == null) {
-			res = WebServer.ResponseTemplate.replace("%BODY%", res).replace("%VALID%", "true").replace("%REASON%", "Ok");
+			res = WebServer.ResponseTemplate.replace("%BODY%", res).replace("%VALID%", Boolean.toString(true)).replace("%REASON%", "Ok");
 		} else {
-			res = WebServer.ResponseTemplate.replace("%BODY%", res).replace("%VALID%", "false").replace("%REASON%", errorMessage);
+			res = WebServer.ResponseTemplate.replace("%BODY%", res).replace("%VALID%", Boolean.toString(false)).replace("%REASON%", errorMessage);
 		}
 		return res;
 	}
