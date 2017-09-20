@@ -192,6 +192,8 @@ public class WebServer extends NanoHTTPD {
 				String mpass = (String) parms.get(ServerPath.MASTER_PASSWORD);
 				if (pass != null && mpass != null && mpass.equals(myMasterPassword)) {
 					setPassword(pass);
+				} else {
+					return new Response("401 Unauthorized", MIME_PLAINTEXT, "");
 				}
 				return new Response(HTTP_OK, MIME_PLAINTEXT, "");
 			}

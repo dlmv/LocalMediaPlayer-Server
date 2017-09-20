@@ -105,7 +105,7 @@ public class ServerService extends Service {
 					((RootApplication)getApplication()).Server = server;
 					myStreamingPort = server.getStreamingPort();
 					String pass = settings.getString(MainActivity.PASSWORD, "");
-					String mpass = settings.getString(MainActivity.MASTER_PASSWORD, "");
+					String mpass = settings.getString(MainActivity.MASTER_PASSWORD, "12345");
 
 
 					server.setPassword(pass);
