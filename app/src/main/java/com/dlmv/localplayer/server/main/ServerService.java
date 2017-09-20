@@ -91,6 +91,12 @@ public class ServerService extends Service {
 	public int onStartCommand(final Intent intent, int flags, int startId) {
 		final Thread starter = new Thread(new Runnable() {
 			public void run () {
+				WebServer server = ((RootApplication)getApplication()).Server;
+				if (server != null) {
+					server.stop();
+					((RootApplication) getApplication()).Server = null;
+					myState = STATE_STARTING;
+				}
 				try {
 					String portStr = intent.getStringExtra(PORT);
 					SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
@@ -100,13 +106,12 @@ public class ServerService extends Service {
 						myPort = Integer.parseInt(portStr);
 					}
 					final int port = myPort;
-					WebServer server = WebServer.tryCreateWebServer(port, ServerService.this);
+					server = WebServer.tryCreateWebServer(port, ServerService.this);
 					myPort = server.Port;
 					((RootApplication)getApplication()).Server = server;
 					myStreamingPort = server.getStreamingPort();
 					String pass = settings.getString(MainActivity.PASSWORD, "");
 					String mpass = settings.getString(MainActivity.MASTER_PASSWORD, "12345");
-
 
 					server.setPassword(pass);
 					server.setMasterPassword(mpass);

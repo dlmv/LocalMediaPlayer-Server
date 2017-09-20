@@ -137,7 +137,7 @@ public class WebServer extends NanoHTTPD {
 
     void setMasterPassword(String p) {
         myMasterPassword = p;
-        savePasswords();
+		setPassword("");
     }
 
     private void savePasswords() {
