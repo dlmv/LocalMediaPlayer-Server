@@ -248,7 +248,7 @@ public class MainActivity extends Activity {
 				editor.apply();
 			}
 		});
-		boolean startOnLaunch = settings.getBoolean(START_LAUNCH, true);
+		boolean startOnLaunch = settings.getBoolean(START_LAUNCH, false);
 		myNeedToStart = startOnLaunch;
 		CheckBox startLaunchBox = findViewById(R.id.start_on_launch);
 		startLaunchBox.setChecked(startOnLaunch);
