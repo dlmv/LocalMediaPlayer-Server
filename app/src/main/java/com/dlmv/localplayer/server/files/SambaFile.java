@@ -126,7 +126,7 @@ class SambaFile extends AbstractFile {
 			return myFile.exists();
 		} catch (SmbAuthException e) {
 			throw new FileAuthException(shareString(), e);
-		} catch (SmbException e) {
+		} catch (Exception e) {
 			throw new FileException(e);
 		}
 	}
@@ -189,7 +189,11 @@ class SambaFile extends AbstractFile {
 	@Override
 	public void test() throws FileException {
 		try {
-			myFile.exists();
+			if (myFile.isFile()) {
+				getInputStream().close();
+			} else {
+				myFile.listFiles();
+			}
 		} catch (SmbAuthException e) {
 			throw new FileAuthException(shareString(), e);
 		} catch (Exception e) {

@@ -212,11 +212,18 @@ public class WebServer extends NanoHTTPD {
 					} else {
 						f = AbstractFile.create(path, myContext);
 					}
+					if (!f.exists()) {
+						String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "Not Found");
+						return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+					}
 					f.test();
 					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(true)).replace("%REASON%", "Ok");
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				} catch (FileAuthException e) {
 					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "loginNeeded: " + e.getMessage());
+					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+				} catch (FileException e) {
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", e.getMessage());
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
 			}
@@ -241,6 +248,9 @@ public class WebServer extends NanoHTTPD {
 				} catch (FileAuthException e) {
 					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "loginNeeded: " + e.getMessage());
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+				} catch (FileException e) {
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", e.getMessage());
+					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
 			}
 
@@ -259,6 +269,9 @@ public class WebServer extends NanoHTTPD {
 				} catch (FileAuthException e) {
 					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "loginNeeded: " + e.getMessage());
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+				} catch (FileException e) {
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", e.getMessage());
+					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
 			}
 
@@ -273,6 +286,9 @@ public class WebServer extends NanoHTTPD {
 					return new Response(HTTP_OK, MIME_PLAINTEXT, search(path, request));
 				} catch (FileAuthException e) {
 					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", "loginNeeded: " + e.getMessage());
+					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
+				} catch (FileException e) {
+					String res = ResponseTemplate.replace("%BODY%", "").replace("%VALID%", String.valueOf(false)).replace("%REASON%", e.getMessage());
 					return new Response(HTTP_OK, MIME_PLAINTEXT, res);
 				}
 			}

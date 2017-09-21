@@ -77,4 +77,17 @@ class LocalFile extends AbstractFile {
 		}
 	}
 
+	@Override
+	public void test() throws FileException {
+		try {
+			if (myFile.isFile()) {
+				getInputStream().close();
+			} else {
+				myFile.listFiles();
+			}
+		} catch (Exception e) {
+			throw new FileException(e);
+		}
+	}
+
 }

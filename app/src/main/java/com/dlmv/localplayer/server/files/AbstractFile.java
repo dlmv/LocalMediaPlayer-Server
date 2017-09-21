@@ -41,9 +41,6 @@ public abstract class AbstractFile {
 	
 	public static class FileAuthException extends FileException {
 		private static final long serialVersionUID = 8218872182332120663L;
-		FileAuthException(Throwable throwable) {
-			super(throwable);
-		}
 		FileAuthException(String message, Throwable throwable) {
 			super(message, throwable);
 		}
