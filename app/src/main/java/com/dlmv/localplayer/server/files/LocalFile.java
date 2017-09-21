@@ -29,7 +29,11 @@ class LocalFile extends AbstractFile {
 
 	@Override
 	public String getPath() {
-		return myFile.getPath();
+		String path =  myFile.getPath();
+		if (path.endsWith("/")) {
+			path = path.substring(0, path.length() - 1);
+		}
+		return path;
 	}
 
 	@Override

@@ -51,9 +51,6 @@ public abstract class AbstractFile {
 		if (path.equals("/") || path.equals("smb://")) {
 			return path;
 		}
-		if (path.endsWith("/")) {
-			path = path.substring(0, path.length() - 1);
-		}
 		int divider = path.lastIndexOf("/");
 		return path.substring(divider + 1);
 	}
@@ -69,7 +66,7 @@ public abstract class AbstractFile {
 		} else {
 			String path = Path.substring(0, Path.length() - 1);
 			int divider = path.lastIndexOf("/");
-			return path.substring(0, divider) + "/";
+			return path.substring(0, divider);
 		}
 	}
 

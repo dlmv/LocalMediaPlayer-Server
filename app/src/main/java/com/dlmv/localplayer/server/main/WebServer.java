@@ -490,9 +490,6 @@ public class WebServer extends NanoHTTPD {
 				}
 			}
 			String path = uri;
-			if (!path.endsWith("/")) {
-				path += "/";
-			}
 			try {
 				path = URLEncoder.encode(path, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
@@ -561,9 +558,6 @@ public class WebServer extends NanoHTTPD {
 					}
 				}
 				String path = uri;
-				if (!path.endsWith("/")) {
-					path += "/";
-				}
 				try {
 					path = URLEncoder.encode(path, "UTF-8");
 				} catch (UnsupportedEncodingException e) {
