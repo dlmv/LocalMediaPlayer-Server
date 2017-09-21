@@ -90,7 +90,13 @@ public abstract class AbstractFile {
 	
 	public static AbstractFile create(String path, Context c) throws FileException {
 		if (path.startsWith("smb://")) {
-			return new SambaFile(path, c);
+			try {
+				SambaFile res = new SambaFile(path, c);
+				res.test();
+				return res;
+			} catch (Exception e) {
+				return new SambaFile(path + "/", c);
+			}
 		} else {
 			return new LocalFile(path);
 		}
@@ -98,7 +104,13 @@ public abstract class AbstractFile {
 	
 	public static AbstractFile create(String path, Context c, String login, String password) throws FileException {
 		if (path.startsWith("smb://")) {
-			return new SambaFile(path, c, login, password);
+			try {
+				SambaFile res = new SambaFile(path, c, login, password);
+				res.test();
+				return res;
+			} catch (Exception e) {
+				return new SambaFile(path + "/", c, login, password);
+			}
 		} else {
 			return new LocalFile(path);
 		}

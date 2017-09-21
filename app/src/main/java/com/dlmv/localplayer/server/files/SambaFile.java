@@ -98,7 +98,11 @@ class SambaFile extends AbstractFile {
 
 	@Override
 	public String getPath() {
-		return myFile.getPath();
+		String path =  myFile.getPath();
+		if (path.endsWith("/")) {
+			path = path.substring(0, path.length() - 1);
+		}
+		return path;
 	}
 
 	static String shareString(SmbFile f) {
@@ -190,7 +194,7 @@ class SambaFile extends AbstractFile {
 	public void test() throws FileException {
 		try {
 			if (myFile.isFile()) {
-				getInputStream().close();
+				myFile.getAttributes();
 			} else {
 				myFile.listFiles();
 			}
